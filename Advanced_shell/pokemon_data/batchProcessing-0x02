@@ -1,7 +1,9 @@
 RETRIES=0
 SUCCESS=0
+
 while [ $RETRIES -lt 3 ]; do
     HTTP_CODE=$(curl -s -o "$FILE" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$P")
+
     if [ "$HTTP_CODE" -eq 200 ]; then
         SUCCESS=1
         break
