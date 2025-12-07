@@ -1,18 +1,35 @@
-RETRIES=0
-SUCCESS=0
+#!/bin/bash
 
-while [ $RETRIES -lt 3 ]; do
-    HTTP_CODE=$(curl -s -o "$FILE" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$P")
+# Task 2 + Task 4: Batch Pokémon Data Retrieval with Retry Logic
 
-    if [ "$HTTP_CODE" -eq 200 ]; then
-        SUCCESS=1
-        break
-    else
-        RETRIES=$((RETRIES+1))
-        sleep 1
+POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+OUTPUT_DIR="pokemon_data"
+mkdir -p "$OUTPUT_DIR"
+
+for P in "${POKEMONS[@]}"; do
+    echo "Fetching data for $P..."
+    FILE="$OUTPUT_DIR/$P.json"
+
+    RETRIES=0
+    SUCCESS=0
+
+    # Retry up to 3 times (literal 3)
+    while [ $RETRIES -lt 3 ]; do
+        HTTP_CODE=$(curl -s -o "$FILE" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$P")
+        
+        if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "Saved data to $FILE ✅"
+            SUCCESS=1
+            break
+        else
+            echo "Attempt $((RETRIES+1)) failed for $P (HTTP $HTTP_CODE)"
+            RETRIES=$((RETRIES+1))
+            sleep 1
+        fi
+    done
+
+    # Log error if all 3 attempts fail
+    if [ $SUCCESS -eq 0 ]; then
+        echo "Failed to fetch $P after 3 attempts" >> errors.txt
     fi
 done
-
-if [ $SUCCESS -eq 0 ]; then
-    echo "Failed to fetch $P after 3 attempts" >> errors.txt
-fi
