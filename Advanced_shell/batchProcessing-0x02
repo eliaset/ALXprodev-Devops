@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# batchProcessing-0x02
-# Task 2 + Task 4: Batch Pokémon Data Retrieval with Retry & Error Handling
-
 POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 OUTPUT_DIR="pokemon_data"
 mkdir -p "$OUTPUT_DIR"

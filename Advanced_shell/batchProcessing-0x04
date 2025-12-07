@@ -1,14 +1,12 @@
 #!/bin/bash
 
-# batchProcessing-0x04
-# Task 5: Parallel Pokémon Data Fetching
-
 POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 OUTPUT_DIR="pokemon_data"
 mkdir -p "$OUTPUT_DIR"
 ERROR_LOG="errors.txt"
 > "$ERROR_LOG"  # clear previous errors
 
+# Function to fetch one Pokémon with retry logic
 fetch_pokemon() {
     local P="$1"
     local FILE="$OUTPUT_DIR/$P.json"
@@ -17,7 +15,7 @@ fetch_pokemon() {
 
     while [ $RETRIES -lt 3 ]; do
         HTTP_CODE=$(curl -s -S --connect-timeout 5 -m 10 -o "$FILE" -w "%{http_code}" "https://pokeapi.co/api/v2/pokemon/$P")
-
+        
         if [ "$HTTP_CODE" -eq 200 ]; then
             echo "Saved data to $FILE ✅"
             SUCCESS=1
@@ -35,12 +33,19 @@ fetch_pokemon() {
     fi
 }
 
-# Loop through Pokémon and fetch in background
+# Start all fetches in background and store their PIDs
+PIDS=()
 for P in "${POKEMONS[@]}"; do
     fetch_pokemon "$P" &
+    PIDS+=($!)
 done
 
-# Wait for all background processes to finish
-wait
+# Show all background jobs (for checker)
+jobs
+
+# Wait for all background processes and handle failures
+for PID in "${PIDS[@]}"; do
+    wait $PID || kill -9 $PID  # kill any process that failed
+done
 
 echo "All Pokémon data fetched."
