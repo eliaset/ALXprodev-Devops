@@ -1,0 +1,23 @@
+#!/bin/bash
+
+URL="https://pokeapi.co/api/v2/pokemon/pikachu"
+OUTPUT="data.json"
+ERROR_LOG="errors.txt"
+
+# Make request and store HTTP code + body
+HTTP_CODE=$(curl -s -w "%{http_code}" -o "$OUTPUT" "$URL")
+CURL_EXIT=$?
+
+# Check curl exit code first (network-level failure)
+if [ $CURL_EXIT -ne 0 ]; then
+    echo "$(date) - Network error. curl exit code: $CURL_EXIT" >> "$ERROR_LOG"
+    exit 1
+fi
+
+# Now check HTTP code (API-level failure)
+if [ "$HTTP_CODE" -ne 200 ]; then
+    echo "$(date) - Request failed. HTTP status: $HTTP_CODE" >> "$ERROR_LOG"
+    exit 1
+fi
+
+echo "Success! Data saved to $OUTPUT"
